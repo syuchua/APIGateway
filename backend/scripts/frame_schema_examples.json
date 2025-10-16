@@ -1,0 +1,190 @@
+[
+  {
+    "name": "SCADA Fixed Frame",
+    "description": "固定长度的 Modbus RTU 采集帧，包含地址、功能码、寄存器值等字段。",
+    "version": "1.0.0",
+    "protocol_type": "UDP",
+    "frame_type": "FIXED",
+    "total_length": 16,
+    "fields": [
+      {
+        "name": "slave_id",
+        "data_type": "UINT8",
+        "offset": 0,
+        "length": 1,
+        "byte_order": "BIG_ENDIAN",
+        "description": "从站地址"
+      },
+      {
+        "name": "function_code",
+        "data_type": "UINT8",
+        "offset": 1,
+        "length": 1,
+        "byte_order": "BIG_ENDIAN",
+        "description": "功能码"
+      },
+      {
+        "name": "register_address",
+        "data_type": "UINT16",
+        "offset": 2,
+        "length": 2,
+        "byte_order": "BIG_ENDIAN",
+        "description": "寄存器地址"
+      },
+      {
+        "name": "raw_value",
+        "data_type": "UINT32",
+        "offset": 4,
+        "length": 4,
+        "byte_order": "BIG_ENDIAN",
+        "description": "原始寄存器值"
+      },
+      {
+        "name": "scaled_value",
+        "data_type": "FLOAT32",
+        "offset": 4,
+        "length": 4,
+        "byte_order": "BIG_ENDIAN",
+        "scale": 0.1,
+        "offset_value": -273.15,
+        "description": "经过缩放和偏移后的工程量"
+      },
+      {
+        "name": "timestamp",
+        "data_type": "UINT32",
+        "offset": 8,
+        "length": 4,
+        "byte_order": "BIG_ENDIAN",
+        "description": "数据时间戳 (Unix 时间)"
+      }
+    ],
+    "checksum": {
+      "type": "CRC16",
+      "offset": 12,
+      "length": 2
+    },
+    "is_published": true
+  },
+  {
+    "name": "IEC104 Variable Frame",
+    "description": "IEC 60870-5-104 变长帧示例，采用小端字节序。",
+    "version": "1.1.0",
+    "protocol_type": "TCP",
+    "frame_type": "VARIABLE",
+    "fields": [
+      {
+        "name": "start_byte",
+        "data_type": "UINT8",
+        "offset": 0,
+        "length": 1,
+        "byte_order": "BIG_ENDIAN",
+        "description": "起始字符 0x68"
+      },
+      {
+        "name": "apdu_length",
+        "data_type": "UINT8",
+        "offset": 1,
+        "length": 1,
+        "byte_order": "BIG_ENDIAN",
+        "description": "APDU 长度"
+      },
+      {
+        "name": "control_field",
+        "data_type": "UINT32",
+        "offset": 2,
+        "length": 4,
+        "byte_order": "LITTLE_ENDIAN",
+        "description": "控制域"
+      },
+      {
+        "name": "type_id",
+        "data_type": "UINT8",
+        "offset": 6,
+        "length": 1,
+        "byte_order": "BIG_ENDIAN",
+        "description": "类型标识"
+      },
+      {
+        "name": "cause_of_transmission",
+        "data_type": "UINT16",
+        "offset": 7,
+        "length": 2,
+        "byte_order": "BIG_ENDIAN",
+        "description": "传送原因"
+      },
+      {
+        "name": "asdu_address",
+        "data_type": "UINT16",
+        "offset": 9,
+        "length": 2,
+        "byte_order": "BIG_ENDIAN",
+        "description": "ASDU 地址"
+      },
+      {
+        "name": "io_address",
+        "data_type": "UINT32",
+        "offset": 11,
+        "length": 3,
+        "byte_order": "BIG_ENDIAN",
+        "description": "信息对象地址"
+      },
+      {
+        "name": "value",
+        "data_type": "FLOAT32",
+        "offset": 14,
+        "length": 4,
+        "byte_order": "LITTLE_ENDIAN",
+        "description": "信息体数值"
+      }
+    ],
+    "checksum": {
+      "type": "NONE"
+    },
+    "is_published": false
+  },
+  {
+    "name": "Syslog Delimited Frame",
+    "description": "基于换行分隔的 Syslog 文本格式，用于 UDP 日志接入。",
+    "version": "0.9.0",
+    "protocol_type": "UDP",
+    "frame_type": "DELIMITED",
+    "fields": [
+      {
+        "name": "priority",
+        "data_type": "STRING",
+        "offset": 0,
+        "length": 8,
+        "byte_order": "BIG_ENDIAN",
+        "description": "<PRI>"
+      },
+      {
+        "name": "timestamp",
+        "data_type": "STRING",
+        "offset": 8,
+        "length": 15,
+        "byte_order": "BIG_ENDIAN",
+        "description": "时间戳"
+      },
+      {
+        "name": "host",
+        "data_type": "STRING",
+        "offset": 23,
+        "length": 32,
+        "byte_order": "BIG_ENDIAN",
+        "description": "主机名"
+      },
+      {
+        "name": "message",
+        "data_type": "STRING",
+        "offset": 55,
+        "length": 0,
+        "byte_order": "BIG_ENDIAN",
+        "description": "原始日志内容（直到分隔符）"
+      }
+    ],
+    "checksum": {
+      "type": "NONE"
+    },
+    "is_published": true
+  }
+]

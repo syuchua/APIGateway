@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.python-version
+.venv/
+uv.lock
+backend/.venv/
+backend/.mypy_cache/
+backend/.pytest_cache/
+backend/.ruff_cache/
+backend/.coverage
+backend/htmlcov/
+backend/.DS_Store
+
+# Node / Next.js
+front/node_modules/
+front/.next/
+front/out/
+front/.turbo/
+front/.swc/
+front/.eslintcache
+front/coverage/
+front/.DS_Store
+
+# Logs & runtime files
+logs/
+*.log
+*.sqlite3
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.code-workspace
+
+# Misc
+.env
+.env.*
+!backend/.env.example
+!.env.example
+
+# Docker
+*.tar
+
+
+Claude.md

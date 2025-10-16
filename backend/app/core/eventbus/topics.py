@@ -1,0 +1,93 @@
+"""
+EventBus主题定义
+定义系统中所有EventBus主题的枚举和常量
+"""
+from enum import Enum
+
+
+class TopicCategory(str, Enum):
+    """主题分类枚举"""
+    # 数据接收相关
+    UDP_RECEIVED = "UDP_RECEIVED"
+    HTTP_RECEIVED = "HTTP_RECEIVED"
+    WEBSOCKET_RECEIVED = "WEBSOCKET_RECEIVED"
+    MQTT_RECEIVED = "MQTT_RECEIVED"
+    TCP_RECEIVED = "TCP_RECEIVED"
+
+    # 数据处理相关
+    DATA_VALIDATED = "DATA_VALIDATED"
+    DATA_PARSED = "DATA_PARSED"
+    DATA_PROCESSED = "DATA_PROCESSED"
+    ROUTING_DECIDED = "ROUTING_DECIDED"
+    DATA_ROUTED = "DATA_ROUTED"
+
+    # 数据转发相关
+    DATA_FORWARDING = "DATA_FORWARDING"
+    DATA_FORWARDED = "DATA_FORWARDED"
+    FORWARD_SUCCESS = "FORWARD_SUCCESS"
+    FORWARD_FAILED = "FORWARD_FAILED"
+
+    # 错误处理相关
+    VALIDATION_ERROR = "VALIDATION_ERROR"
+    PARSING_ERROR = "PARSING_ERROR"
+    PROCESSING_ERROR = "PROCESSING_ERROR"
+    ROUTING_ERROR = "ROUTING_ERROR"
+    FORWARD_ERROR = "FORWARD_ERROR"
+
+    # 系统监控相关
+    SYSTEM_HEALTH = "SYSTEM_HEALTH"
+    PERFORMANCE_METRICS = "PERFORMANCE_METRICS"
+    CONNECTION_STATUS = "CONNECTION_STATUS"
+
+    # 配置管理相关
+    CONFIG_UPDATED = "CONFIG_UPDATED"
+    CONFIG_RELOADED = "CONFIG_RELOADED"
+
+
+# 主题分组常量
+PROTOCOL_TOPICS = [
+    TopicCategory.UDP_RECEIVED,
+    TopicCategory.HTTP_RECEIVED,
+    TopicCategory.WEBSOCKET_RECEIVED,
+    TopicCategory.MQTT_RECEIVED,
+    TopicCategory.TCP_RECEIVED,
+]
+
+PROCESSING_TOPICS = [
+    TopicCategory.DATA_VALIDATED,
+    TopicCategory.DATA_PARSED,
+    TopicCategory.DATA_PROCESSED,
+    TopicCategory.ROUTING_DECIDED,
+    TopicCategory.DATA_ROUTED,
+]
+
+ERROR_TOPICS = [
+    TopicCategory.VALIDATION_ERROR,
+    TopicCategory.PARSING_ERROR,
+    TopicCategory.PROCESSING_ERROR,
+    TopicCategory.ROUTING_ERROR,
+    TopicCategory.FORWARD_ERROR,
+]
+
+FORWARDING_TOPICS = [
+    TopicCategory.DATA_FORWARDING,
+    TopicCategory.DATA_FORWARDED,
+    TopicCategory.FORWARD_SUCCESS,
+    TopicCategory.FORWARD_FAILED,
+]
+
+MONITORING_TOPICS = [
+    TopicCategory.SYSTEM_HEALTH,
+    TopicCategory.PERFORMANCE_METRICS,
+    TopicCategory.CONNECTION_STATUS,
+]
+
+
+__all__ = [
+    "TopicCategory",
+    "PROTOCOL_TOPICS",
+    "PROCESSING_TOPICS",
+    "ERROR_TOPICS",
+    "FORWARDING_TOPICS",
+    "MONITORING_TOPICS",
+]

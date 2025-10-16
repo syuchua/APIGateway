@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(npx create-next-app:*)",
+      "Bash(node:*)",
+      "Bash(npm:*)",
+      "Bash(tree:*)",
+      "Bash(mkdir:*)",
+      "Read(//e/project/APIGateway/**)",
+      "Bash(dir:*)",
+      "Bash(copy:*)",
+      "Bash(rm:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  # PostgreSQL数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: apigateway_postgres
+    environment:
+      POSTGRES_DB: apigateway
+      POSTGRES_USER: gateway_user
+      POSTGRES_PASSWORD: gateway_pass_2025
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/scripts/init_db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gateway_user -d apigateway"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gateway_network
+
+  # Redis缓存
+  redis:
+    image: redis:7-alpine
+    container_name: apigateway_redis
+    command: redis-server --appendonly yes --requirepass redis_pass_2025
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gateway_network
+
+  # mosquitto:
+  #   image: eclipse-mosquitto:2
+  #   container_name: apigateway_mosquitto
+  #   restart: unless-stopped
+  #   ports:
+  #     - "1883:1883"
+  #     - "1884:1884"
+  #   volumes:
+  #     - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+  #     - mosquitto_data:/mosquitto/data
+  #     - mosquitto_logs:/mosquitto/log
+  #   networks:
+  #     - gateway_network
+
+  # # PgAdmin管理工具（可选）
+  # pgadmin:
+  #   image: dpage/pgadmin4:latest
+  #   container_name: apigateway_pgadmin
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: admin@apigateway.com
+  #     PGADMIN_DEFAULT_PASSWORD: admin_pass_2025
+  #     PGADMIN_CONFIG_SERVER_MODE: 'False'
+  #   ports:
+  #     - "5050:80"
+  #   depends_on:
+  #     - postgres
+  #   networks:
+  #     - gateway_network
+  #   profiles:
+  #     - tools  # 使用 --profile tools 启动
+
+  # # Redis Commander管理工具（可选）
+  # redis-commander:
+  #   image: rediscommander/redis-commander:latest
+  #   container_name: apigateway_redis_commander
+  #   environment:
+  #     REDIS_HOSTS: local:redis:6379:0:redis_pass_2025
+  #   ports:
+  #     - "8081:8081"
+  #   depends_on:
+  #     - redis
+  #   networks:
+  #     - gateway_network
+  #   profiles:
+  #     - tools  # 使用 --profile tools 启动
+
+networks:
+  gateway_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  # mosquitto_data:
+  #   driver: local
+  # mosquitto_logs:
+  #   driver: local
