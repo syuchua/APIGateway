@@ -14,6 +14,7 @@ backend/.ruff_cache/
 backend/.coverage
 backend/htmlcov/
 backend/.DS_Store
+backend/api_gateway.egg-info/
 
 # Node / Next.js
 front/node_modules/
