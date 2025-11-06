@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Card, Switch, Button, Select, Input, Badge, Tag, Empty, Tooltip } from 'antd';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { Card, Switch, Button, Select, Input, Badge, Tag, Empty, Tooltip, Segmented, Table } from 'antd';
 import {
   PauseOutlined,
   PlayCircleOutlined,
@@ -50,9 +50,11 @@ const transformApiLog = (log: ApiLogEntry): ViewerLogEntry => {
     message: log.message_id,
     protocol: normalizeProtocol(log.source_protocol),
     details: {
+      source_id: log.source_id,
       target_systems: log.target_systems,
       error: log.error_message,
       data_size: log.data_size,
+      processing_time_ms: log.processing_time_ms,
     },
   };
 };
@@ -76,6 +78,7 @@ export function RealtimeLogViewer() {
   const [logs, setLogs] = useState<ViewerLogEntry[]>([]);
   const [isPaused, setIsPaused] = useState(false);
   const [autoScroll, setAutoScroll] = useState(true);
+  const [viewMode, setViewMode] = useState<'structured' | 'raw'>('structured');
   const [filters, setFilters] = useState<LogFilters>({
     level: [],
     service: [],
@@ -222,6 +225,105 @@ export function RealtimeLogViewer() {
     return true;
   });
 
+  // 结构化日志表格数据
+  const structuredRows = useMemo(() => {
+    return filteredLogs.map((log) => {
+      const d = log.details || {};
+      const targets = (d.target_systems as string[] | undefined) ?? [];
+      const processingMs = (d.processing_time_ms as number | undefined) ?? undefined;
+      const dataSize = (d.data_size as number | undefined) ?? undefined;
+      const sourceId = (d.source_id as string | undefined) ?? undefined;
+      return {
+        key: `${log.id}`,
+        id: log.id,
+        time: log.timestamp,
+        level: log.level,
+        status: log.service,
+        protocol: log.protocol,
+        source: sourceId ? `${log.protocol ?? ''}/${sourceId}` : (log.protocol ?? ''),
+        targets,
+        processingMs,
+        dataSize,
+        message: log.message,
+        error: (d.error as string | undefined) ?? undefined,
+      };
+    });
+  }, [filteredLogs]);
+
+  const structuredColumns = [
+    {
+      title: '时间',
+      dataIndex: 'time',
+      key: 'time',
+      width: 170,
+      render: (value: string) => {
+        const date = new Date(value);
+        const now = Date.now();
+        const diffSec = Math.max(0, Math.floor((now - date.getTime()) / 1000));
+        const relative = diffSec < 60 ? `${diffSec}s前` : `${Math.floor(diffSec / 60)}m前`;
+        return (
+          <div className="text-xs">
+            <div>{date.toLocaleTimeString()}</div>
+            <div className="text-gray-500">{relative}</div>
+          </div>
+        );
+      }
+    },
+    {
+      title: '消息ID',
+      dataIndex: 'message',
+      key: 'message',
+      width: 200,
+      ellipsis: true,
+    },
+    {
+      title: '接入',
+      dataIndex: 'source',
+      key: 'source',
+      width: 160,
+      render: (v: string) => <span className="text-blue-600 text-xs">{v || '-'}</span>,
+    },
+    {
+      title: '转发目标',
+      dataIndex: 'targets',
+      key: 'targets',
+      render: (targets: string[]) => (
+        <div className="flex flex-wrap gap-1">
+          {(targets || []).slice(0, 4).map((t) => (
+            <Tag key={t} color="geekblue" className="text-xxs">{t}</Tag>
+          ))}
+          {(targets || []).length > 4 && <Tag>+{targets.length - 4}</Tag>}
+        </div>
+      )
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      width: 100,
+      render: (status: string) => (
+        <Badge
+          status={status === 'failed' ? 'error' : status === 'success' ? 'success' : 'processing'}
+          text={status}
+        />
+      )
+    },
+    {
+      title: '耗时(ms)',
+      dataIndex: 'processingMs',
+      key: 'processingMs',
+      width: 90,
+      render: (v?: number) => (v ?? '-')
+    },
+    {
+      title: '大小',
+      dataIndex: 'dataSize',
+      key: 'dataSize',
+      width: 90,
+      render: (v?: number) => (typeof v === 'number' ? `${v}B` : '-')
+    },
+  ];
+
   // 获取日志级别的样式
   const getLevelStyle = (level: string) => {
     const styles = {
@@ -306,6 +408,14 @@ export function RealtimeLogViewer() {
           </div>
 
           <div className="flex items-center gap-2">
+            <Segmented
+              value={viewMode}
+              onChange={(val) => setViewMode(val as 'structured' | 'raw')}
+              options={[
+                { label: '结构化视图', value: 'structured' },
+                { label: '原始日志', value: 'raw' },
+              ]}
+            />
             <Button
               icon={<ClearOutlined />}
               onClick={clearLogs}
@@ -391,56 +501,78 @@ export function RealtimeLogViewer() {
 
       {/* 日志列表 */}
       <Card title="实时日志" className="h-96">
-        <div
-          ref={logContainerRef}
-          className="h-80 overflow-y-auto font-mono text-xs bg-black text-green-400 p-4 rounded"
-          style={{ scrollBehavior: autoScroll ? 'smooth' : 'auto' }}
-        >
-          {filteredLogs.length === 0 ? (
-            <div className="flex items-center justify-center h-full">
-              {logs.length === 0 ? (
-                <Empty
-                  description="暂无日志数据"
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                />
-              ) : (
-                <Empty
-                  description="没有符合条件的日志"
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                />
-              )}
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {filteredLogs.map((log, index) => {
-                const levelStyle = getLevelStyle(log.level);
-                return (
-                  <div key={`${log.id}-${index}`} className="flex items-start gap-2 py-1 hover:bg-gray-800 rounded px-2">
-                    <span className="text-gray-400 w-20 flex-shrink-0">
-                      {new Date(log.timestamp).toLocaleTimeString()}
-                    </span>
-                    <Tag
-                      className={`${levelStyle.color} ${levelStyle.bg} text-xs font-mono w-16 text-center`}
-                    >
-                      {log.level.toUpperCase()}
-                    </Tag>
-                    <span className="text-blue-400 w-20 flex-shrink-0 truncate">
-                      {log.service}
-                    </span>
-                    {log.protocol && (
-                      <span className="text-yellow-400 w-12 flex-shrink-0 text-xs">
-                        {log.protocol.toUpperCase()}
+        {viewMode === 'structured' ? (
+          <div className="h-80 overflow-hidden">
+            {structuredRows.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                {logs.length === 0 ? (
+                  <Empty description="暂无日志数据" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                ) : (
+                  <Empty description="没有符合条件的日志" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                )}
+              </div>
+            ) : (
+              <Table
+                size="small"
+                columns={structuredColumns as any}
+                dataSource={structuredRows}
+                pagination={false}
+                scroll={{ y: 280 }}
+              />
+            )}
+          </div>
+        ) : (
+          <div
+            ref={logContainerRef}
+            className="h-80 overflow-y-auto font-mono text-xs bg-black text-green-400 p-4 rounded"
+            style={{ scrollBehavior: autoScroll ? 'smooth' : 'auto' }}
+          >
+            {filteredLogs.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                {logs.length === 0 ? (
+                  <Empty
+                    description="暂无日志数据"
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  />
+                ) : (
+                  <Empty
+                    description="没有符合条件的日志"
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {filteredLogs.map((log, index) => {
+                  const levelStyle = getLevelStyle(log.level);
+                  return (
+                    <div key={`${log.id}-${index}`} className="flex items-start gap-2 py-1 hover:bg-gray-800 rounded px-2">
+                      <span className="text-gray-400 w-20 flex-shrink-0">
+                        {new Date(log.timestamp).toLocaleTimeString()}
                       </span>
-                    )}
-                    <span className="flex-1 text-green-400 break-all">
-                      {log.message}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                      <Tag
+                        className={`${levelStyle.color} ${levelStyle.bg} text-xs font-mono w-16 text-center`}
+                      >
+                        {log.level.toUpperCase()}
+                      </Tag>
+                      <span className="text-blue-400 w-20 flex-shrink-0 truncate">
+                        {log.service}
+                      </span>
+                      {log.protocol && (
+                        <span className="text-yellow-400 w-12 flex-shrink-0 text-xs">
+                          {log.protocol.toUpperCase()}
+                        </span>
+                      )}
+                      <span className="flex-1 text-green-400 break-all">
+                        {log.message}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </Card>
     </div>
   );
