@@ -260,6 +260,7 @@ async def start_target_sinks() -> Dict[str, Any]:
 
     http_endpoints = [
         ("HTTP 数据仓库 (无认证)", 9000),
+        ("SOA 系统 (HTTP)", 9005),
         ("HTTP API 服务 (Basic认证)", 9001),
         ("云平台 API (Bearer Token)", 9002),
         ("分析服务 (API Key)", 9003),
@@ -486,6 +487,26 @@ async def main() -> None:
                 "forwarder_config": {
                     "timeout": 20,
                     "retry_count": 3,
+                    "batch_size": 100,
+                    "compression": False,
+                    "encryption": encryption_config,
+                },
+                "is_active": True,
+            },
+            {
+                "name": "SOA 系统 (HTTP)",
+                "description": "SOA 简化HTTP服务，监听本地 9005 端口",
+                "protocol_type": "HTTP",
+                "endpoint_config": {
+                    "target_address": "127.0.0.1",
+                    "target_port": 9005,
+                    "endpoint_path": "/soa/service",
+                    "use_ssl": False,
+                },
+                "auth_config": {"auth_type": "none"},
+                "forwarder_config": {
+                    "timeout": 10,
+                    "retry_count": 2,
                     "batch_size": 100,
                     "compression": False,
                     "encryption": encryption_config,
