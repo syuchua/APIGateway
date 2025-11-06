@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Card, Row, Col, Button, Badge, Tag, Modal, Alert, message, Descriptions } from 'antd';
+import { Card, Row, Col, Button, Badge, Tag, Modal, Alert, message, Descriptions, Table } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
@@ -251,6 +251,59 @@ function RuleDetailModal({
               </div>
             ))}
           </div>
+        </Card>
+
+        <Card title="链路健康 (简化)" size="small">
+          <Table
+            size="small"
+            rowKey="key"
+            pagination={false}
+            columns={[
+              { title: '节点', dataIndex: 'node', key: 'node', width: 120 },
+              { title: '标识', dataIndex: 'id', key: 'id', render: (v: string) => <code>{v}</code> },
+              {
+                title: '状态',
+                dataIndex: 'status',
+                key: 'status',
+                width: 120,
+                render: (v: string) => <Badge status={v === '正常' ? 'success' : v === '停用' ? 'default' : 'processing'} text={v} />,
+              },
+              { title: '命中条数', dataIndex: 'hits', key: 'hits', width: 120 },
+              { title: '最后匹配', dataIndex: 'last', key: 'last', width: 200 },
+            ] as any}
+            dataSource={((): Array<{ key: string; node: string; id: string; status: string; hits: number | string; last: string }> => {
+              const last = rule.last_match_at ? new Date(rule.last_match_at).toLocaleString('zh-CN') : '—';
+              const rows: Array<{ key: string; node: string; id: string; status: string; hits: number | string; last: string }> = [];
+              rows.push({
+                key: 'source',
+                node: '源',
+                id: rule.source_pattern || '—',
+                status: rule.is_active ? '正常' : '停用',
+                hits: rule.match_count ?? 0,
+                last,
+              });
+              (rule.target_system_ids || []).forEach((id, i) => {
+                rows.push({
+                  key: `target-${i}`,
+                  node: '目标',
+                  id: id,
+                  status: rule.is_published ? '正常' : '未发布',
+                  hits: '—',
+                  last,
+                });
+              });
+              rows.push({
+                key: 'overall',
+                node: '整体',
+                id: rule.name,
+                status: rule.is_active ? (rule.match_count && rule.match_count > 0 ? '正常' : '运行') : '停用',
+                hits: rule.match_count ?? 0,
+                last,
+              });
+              return rows;
+            })()}
+          />
+          <div className="text-xs text-gray-500 mt-2">注：该视图为前端简化展示，不依赖后端实时链路探测。</div>
         </Card>
 
         {rule.conditions && (
