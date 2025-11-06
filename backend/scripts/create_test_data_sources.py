@@ -246,6 +246,7 @@ async def http_hello_task(ds: Dict[str, Any], token: Optional[str]) -> None:
             }
             try:
                 response = await client.post(ingest_url, json=payload)
+                print(f"发送HTTP消息：{payload}")
                 if response.status_code >= 400:
                     print(f"⚠️ HTTP[{ds['name']}] 响应 {response.status_code}: {response.text[:120]}")
             except Exception as exc:  # pylint: disable=broad-except
@@ -274,6 +275,7 @@ async def udp_hello_task(ds: Dict[str, Any]) -> None:
             payload = message_base | {"timestamp": _now_iso()}
             try:
                 sock.sendto(json.dumps(payload).encode("utf-8"), (host, int(port)))
+                print(f"发送UDP原始消息：{payload}")
             except Exception as exc:  # pylint: disable=broad-except
                 print(f"⚠️ UDP[{ds['name']}] 发送失败: {exc}")
             await asyncio.sleep(HELLO_INTERVAL)
@@ -305,7 +307,7 @@ async def tcp_hello_task(ds: Dict[str, Any]) -> None:
                 await writer.drain()
                 await asyncio.sleep(HELLO_INTERVAL)
         except Exception as exc:  # pylint: disable=broad-except
-            print(f"⚠️ TCP[{ds['name']}] 发送失败: {exc}")
+            # print(f"⚠️ TCP[{ds['name']}] 发送失败: {exc}")
             await asyncio.sleep(5)
         finally:
             if writer is not None:
@@ -336,6 +338,7 @@ async def websocket_hello_task(ds: Dict[str, Any]) -> None:
                         "timestamp": _now_iso(),
                     }
                     await ws.send(json.dumps(payload))
+                    print(f"发送websocket消息：{payload}")
                     await asyncio.sleep(HELLO_INTERVAL)
         except Exception as exc:  # pylint: disable=broad-except
             print(f"⚠️ WebSocket[{ds['name']}] 发送失败: {exc}")
