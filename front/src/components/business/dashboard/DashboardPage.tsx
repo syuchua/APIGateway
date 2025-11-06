@@ -413,12 +413,12 @@ interface RecentActivitiesProps {
 
 function RecentActivities({ activities, loading }: RecentActivitiesProps) {
   if (loading && !activities) {
-    return <Card title="最近活动"><Skeleton active /></Card>;
+    return <Card title="消息队列"><Skeleton active /></Card>;
   }
 
   if (!activities || activities.length === 0) {
     return (
-      <Card title="最近活动">
+      <Card title="消息队列">
         <Empty description="暂无活动" />
       </Card>
     );
@@ -442,11 +442,14 @@ function RecentActivities({ activities, loading }: RecentActivitiesProps) {
   };
 
   return (
-    <Card title="最近活动">
+    <Card title="消息队列">
       <div className="space-y-3">
         {activities.map((activity) => {
           const iconConfig = getActivityIcon(activity.type);
           const timestampLabel = activity.timestamp ? new Date(activity.timestamp).toLocaleString('zh-CN') : '未知时间';
+          const relative = activity.timestamp
+            ? (() => { const d=new Date(activity.timestamp).getTime(); const s=Math.max(0,Math.floor((Date.now()-d)/1000)); return s<60? `${s}s前` : `${Math.floor(s/60)}m前`; })()
+            : '';
           return (
             <div key={activity.id} className="flex items-center gap-3">
               <div className={`w-8 h-8 ${iconConfig.className} rounded-full flex items-center justify-center`}>
@@ -458,6 +461,12 @@ function RecentActivities({ activities, loading }: RecentActivitiesProps) {
                   <span>{activity.user}</span>
                   <span>•</span>
                   <span>{timestampLabel}</span>
+                  {relative && (
+                    <>
+                      <span>•</span>
+                      <span className="text-gray-400">{relative}</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
