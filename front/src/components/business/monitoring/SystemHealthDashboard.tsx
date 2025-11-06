@@ -5,6 +5,7 @@ import { Card, Row, Col, Badge, Button, Skeleton, Statistic, Progress, Empty, Sp
 import { ReloadOutlined, ApiOutlined, DatabaseOutlined, CloudServerOutlined } from '@ant-design/icons';
 import { useMonitoringStore } from '@/stores/monitoringStore';
 import { HealthTrendChart } from '@/components/charts';
+import { ProcessMonitor } from '@/components/system/ProcessMonitor';
 
 const STATUS_MAP: Record<string, { text: string; badge: 'success' | 'warning' | 'error' | 'default' }> = {
   healthy: { text: '正常', badge: 'success' },
@@ -213,6 +214,8 @@ export function SystemHealthDashboard() {
               <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无趋势数据" />
             )}
           </Card>
+
+          <ProcessMonitor />
         </>
       )}
     </div>
