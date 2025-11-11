@@ -52,6 +52,13 @@ const navigationItems = [
     icon: Settings,
     description: '系统配置和用户管理'
   }
+  ,
+  {
+    name: '控制指令',
+    href: '/control',
+    icon: Settings,
+    description: '控制指令下发与握手确认'
+  }
 ];
 
 export function Sidebar() {

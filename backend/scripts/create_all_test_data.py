@@ -46,7 +46,7 @@ async def main():
 
     print("\n📝 将创建以下测试数据:")
     print("  - 6 个数据源 (HTTP, UDP×2, MQTT, WebSocket, TCP)")
-    print("  - 9 个目标系统 (覆盖所有协议和认证类型)")
+    print("  - 10 个目标系统 (覆盖所有协议和认证类型)")
     print("  - 7 条路由规则 (覆盖常见路由场景)")
     print()
 
